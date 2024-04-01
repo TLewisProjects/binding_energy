@@ -2,3 +2,4 @@ venv
 scratch.py
 binding_energy/__pycache__
 test/__pycache__
+profiling/__pycache__

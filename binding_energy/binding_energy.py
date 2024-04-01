@@ -17,6 +17,12 @@ def binding_energy(r):
     return 4*EPSILON*(pow(scaled_r, 12) - pow(scaled_r, 6))
 
 def initial_test():
+    """
+    Calcuate the total binding energy for a set of three objects at fixed separations.
+
+    Returns:
+        float: The total binding energy
+    """
     object_separations = [4.1e-10, 2e-10, 3.41e-10]
 
     total_binding_energy = 0
