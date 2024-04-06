@@ -1,7 +1,7 @@
 from typing import Type
 
-SCALE_FACTOR = 3.41e-10
-EPSILON = 1.65e-21
+PARTICLE_SIZE = 3.41e-10
+DISPERSION_ENERGY = 1.65e-21
 
 def binding_energy(r):
     """
@@ -13,8 +13,8 @@ def binding_energy(r):
     Returns:
         float: The binding energy
     """
-    scaled_r = SCALE_FACTOR / r # pre-calculate scale
-    return 4*EPSILON*(pow(scaled_r, 12) - pow(scaled_r, 6))
+    scaled_r = pow(PARTICLE_SIZE / r,6)
+    return 4*DISPERSION_ENERGY*(scaled_r)*(scaled_r-1)
 
 def initial_test():
     """
