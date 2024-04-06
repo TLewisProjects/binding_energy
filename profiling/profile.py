@@ -29,3 +29,7 @@ def profile_binding_energy():
     number = 1000000
     total_execution_time = timeit.timeit(setup=SETUP, stmt=TEST, number=number)
     return total_execution_time/number
+
+def run_profiling():
+    print("binding_energy execution time (s): " + str(profile_binding_energy()))
+    print("initial_test execution time (s): " + str(profile_initial_test()))
