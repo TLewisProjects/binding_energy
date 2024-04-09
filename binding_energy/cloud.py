@@ -4,31 +4,58 @@ from binding_energy import binding_energy
 
 J_TO_EV = 6.24150907446076e+18
 
-class Particles():
+class Cloud():
+    """
+    Holds information on a multi-particle system in 3D space.
+    """
+    
+    def __init__(self, input_file, particle_size=3.41e-10, dispersion_energy=1.65e-21):
+        """
+        Initialises the system.
 
-    def __init__(self, input_file):
+        Args:
+        input_file (str): A filepath to a text file containing the 3D positions of the particles in the system.
+        particle_size (float): Size of the particles in the system in metres (sigma).
+        dispersion_energy (float): Depth of the potential well in joules (epsilon).
+        """
         self.system = []
         with open(input_file) as input:
             for particle in input.readlines():
                 x, y, z = particle.split(",")
                 self.system.append(Particle(float(x),float(y),float(z)))
 
-    def binding_energy(self, ev=False):
+        self.particle_size = particle_size
+        self.dispersion_energy = dispersion_energy
+
+    def binding_energy(self, r, particle_size, dispersion_energy):
+        """
+        Calcuate the binding energy for two objects with separation, r.
+
+        Args:
+            r (float): The separation of two objects
+
+        Returns:
+            float: The binding energy
+        """
+        scaled_r = pow(particle_size / r,6)
+        return 4*dispersion_energy*(scaled_r)*(scaled_r-1)
+
+    def total_binding_energy(self, ev=False):
         """
         Calculates the total binding energy of a system of particles.
 
         Args:
-        ev (Bool): If True, returns results in eV (electron-volts), else returns in J (joules)
+        ev (Bool): If True, returns result in eV (electron-volts), else returns in J (joules)
 
         Returns:
         float: The total binding energy of the particles.
         """
-        total_binding_energy = 0
+        total_binding_energy = 0.0
         for index, particle in enumerate(self.system):
             # Slice to get all particles further along than the current one
             for other_particle in self.system[index+1:]:
                 separation = particle.distance_to(other_particle)
-                total_binding_energy += binding_energy.binding_energy(separation)
+                total_binding_energy += self.binding_energy(separation, self.particle_size, self.dispersion_energy)
 
         if(ev):
             return total_binding_energy * J_TO_EV
