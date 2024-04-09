@@ -2,7 +2,6 @@ import unittest
 import os
 
 from numpy.testing import assert_allclose
-from binding_energy import binding_energy
 
 from binding_energy.cloud import Cloud
 
@@ -35,14 +34,14 @@ class TestBindingEnergy(unittest.TestCase):
         Test a system of two particles equidistant by particle size.
         """
         test_system = Cloud(os.path.join(script_dir, "zero_system_2.txt"))
-        assert_allclose(test_system.binding_energy(ev=True), 0.0)
+        assert_allclose(test_system.total_binding_energy(ev=True), 0.0)
 
     def test_zero_system_3(self):
         """
         Test a system of three particles equidistant by particle size.
         """
         test_system = Cloud(os.path.join(script_dir, "zero_system_3.txt"))
-        assert_allclose(test_system.binding_energy(ev=True), 0.0, atol=1e-16)
+        assert_allclose(test_system.total_binding_energy(ev=True), 0.0, atol=1e-16)
 
 
 if __name__ == "__main__":

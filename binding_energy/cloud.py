@@ -1,7 +1,5 @@
 import math
 
-from binding_energy import binding_energy
-
 J_TO_EV = 6.24150907446076e+18
 
 class Cloud():
@@ -27,12 +25,15 @@ class Cloud():
         self.particle_size = particle_size
         self.dispersion_energy = dispersion_energy
 
-    def binding_energy(self, r, particle_size, dispersion_energy):
+    @staticmethod
+    def binding_energy(r, particle_size, dispersion_energy):
         """
         Calcuate the binding energy for two objects with separation, r.
 
         Args:
-            r (float): The separation of two objects
+            r (float): Separation of two objects.
+            particle_size (float): Size of the particles involved in metres.
+            dispersion_energy (float): Depth of the potential well in joules
 
         Returns:
             float: The binding energy
@@ -89,4 +90,3 @@ class Particle():
         return math.sqrt((x_separation*x_separation) + 
                          (y_separation*y_separation) +
                          (z_separation*z_separation))
-
