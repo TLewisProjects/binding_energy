@@ -1,6 +1,36 @@
 import math
+import random
 
 J_TO_EV = 6.24150907446076e+18
+
+# Utility functions
+def points_on_a_sphere(N, radius):
+    """
+    Generates a uniformly distributed set of points on the surface of a sphere.
+
+        Args:
+        N (int): The number of points to generate.
+        radius (float): The radius of the sphere.
+
+        Returns:
+            list: A list of tuples containing the X, Y, and Z coordinates of each point.
+    """
+    points = []
+    for i in range(N):
+        z = random.uniform(-radius, radius)
+        phi = random.uniform(0, 2*math.pi)
+
+        x = math.sqrt((radius*radius)-(z*z))*math.cos(phi)
+        y = math.sqrt((radius*radius)-(z*z))*math.sin(phi)
+
+        points.append((x,y,z))
+
+    return points
+
+def write_sphere(file, N, radius):
+    points = points_on_a_sphere(N, radius)
+    with open(file, "w") as sphere_file:
+        sphere_file.writelines([str(point[0])+","+str(point[1])+","+str(point[2])+"\n" for point in points])
 
 class Cloud():
     """
@@ -41,9 +71,9 @@ class Cloud():
         scaled_r = pow(particle_size / r,6)
         return 4*dispersion_energy*(scaled_r)*(scaled_r-1)
 
-    def total_binding_energy(self, ev=False):
+    def total_binding_energy_brute(self, ev=False):
         """
-        Calculates the total binding energy of a system of particles.
+        Calculates the total binding energy of a system of particles by direct summation.
 
         Args:
         ev (Bool): If True, returns result in eV (electron-volts), else returns in J (joules)
@@ -62,6 +92,28 @@ class Cloud():
             return total_binding_energy * J_TO_EV
         else:
             return total_binding_energy
+        
+    def total_binding_energy_cutoff(self, cutoff=None):
+        """
+        Calculates the total binding energy of a system of particles by direct summation
+        with a hard cutoff in separation.
+
+        Returns:
+        float: The total binding energy of the particles.
+        """
+        # Set default cutoff if one is not provided.
+        if(cutoff == None):
+            cutoff = self.particle_size*10
+
+        total_binding_energy = 0.0
+        for index, particle in enumerate(self.system):
+            # Slice to get all particles further along than the current one
+            for other_particle in self.system[index+1:]:
+                separation = particle.distance_to(other_particle)
+                if(separation < cutoff):
+                    total_binding_energy += self.binding_energy(separation, self.particle_size, self.dispersion_energy)
+        return total_binding_energy
+
 
 class Particle():
     """
