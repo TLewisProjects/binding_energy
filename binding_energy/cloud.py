@@ -1,6 +1,8 @@
 import math
 import random
 
+from argparse import ArgumentParser
+
 J_TO_EV = 6.24150907446076e+18
 
 # Utility functions
@@ -98,6 +100,9 @@ class Cloud():
         Calculates the total binding energy of a system of particles by direct summation
         with a hard cutoff in separation.
 
+        Args:
+        cutoff (float): The maximum separation at which the binding energy is no longer evaluated.
+
         Returns:
         float: The total binding energy of the particles.
         """
@@ -142,3 +147,26 @@ class Particle():
         return math.sqrt((x_separation*x_separation) + 
                          (y_separation*y_separation) +
                          (z_separation*z_separation))
+    
+
+if __name__ == "__main__":
+    # Handle user input from the command line
+    parser = ArgumentParser(prog="Cloud simulator", 
+                            description="""Calculate state quantities of a multi-particle system - 
+                            currently only total binding energy""")
+    
+    parser.add_argument("filepath", help="""The file location of a text file containing the initial 3D
+                        spatial positions of a set of particles. Each particle position should be on a separate line
+                        and the X, Y, and Z positions should be separated by commas.""")
+    parser.add_argument("-p", "--particle_size", default=3.41e-10, help="The sigma value for the Lennard-Jones potential.")
+    parser.add_argument("-d", "--dispersion_energy", default=1.65e-21, help="The epsilon value for the Lennard-Jones potential.")
+
+    args = parser.parse_args()
+    filepath = args.filepath
+    particle_size = args.particle_size
+    dispersion_energy = args.dispersion_energy
+
+    system = Cloud(filepath, particle_size=particle_size, dispersion_energy=dispersion_energy)
+
+    total_binding_energy = system.total_binding_energy_cutoff()
+    print("Total binding energy of your system: "+str(total_binding_energy)+" J")
