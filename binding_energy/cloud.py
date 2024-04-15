@@ -1,38 +1,15 @@
 import math
 import random
+import pdb
 
 from argparse import ArgumentParser
+from itertools import product as itertools_product
+
+from binding_energy.hashtable import HashTable
+
+from binding_energy.particle import Particle
 
 J_TO_EV = 6.24150907446076e+18
-
-# Utility functions
-def points_on_a_sphere(N, radius):
-    """
-    Generates a uniformly distributed set of points on the surface of a sphere.
-
-        Args:
-        N (int): The number of points to generate.
-        radius (float): The radius of the sphere.
-
-        Returns:
-            list: A list of tuples containing the X, Y, and Z coordinates of each point.
-    """
-    points = []
-    for i in range(N):
-        z = random.uniform(-radius, radius)
-        phi = random.uniform(0, 2*math.pi)
-
-        x = math.sqrt((radius*radius)-(z*z))*math.cos(phi)
-        y = math.sqrt((radius*radius)-(z*z))*math.sin(phi)
-
-        points.append((x,y,z))
-
-    return points
-
-def write_sphere(file, N, radius):
-    points = points_on_a_sphere(N, radius)
-    with open(file, "w") as sphere_file:
-        sphere_file.writelines([str(point[0])+","+str(point[1])+","+str(point[2])+"\n" for point in points])
 
 class Cloud():
     """
@@ -118,36 +95,85 @@ class Cloud():
                 if(separation < cutoff):
                     total_binding_energy += self.binding_energy(separation, self.particle_size, self.dispersion_energy)
         return total_binding_energy
+    
 
-
-class Particle():
-    """
-    Holds information on a single particle in a multi-particle system.
-    """
-
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-    def distance_to(self, other_particle):
+class CloudHash():
+    def __init__(self, input_file, particle_size=3.41e-10, dispersion_energy=1.65e-21, cutoff=10, hashtable_bin_size=5):
         """
-        Calculates the separation between two particle objects.
+        Initialises the system.
 
         Args:
-        other_particle (Particle): Another object to calculate the distance to.
+        input_file (str): A filepath to a text file containing the 3D positions of the particles in the system.
+        particle_size (float): Size of the particles in the system in metres (sigma).
+        dispersion_energy (float): Depth of the potential well in joules (epsilon).
+        cutoff (float): Maximum separation between two particles for which the binding energy is calculated.
+        hashtable_bin_size (float): The size of the bins in the HashTable as a proportion particle_size.
+        """
+        self.hash_system = HashTable(particle_size*hashtable_bin_size)
+
+        with open(input_file) as input:
+            for particle in input.readlines():
+                x, y, z = particle.split(",")
+                self.hash_system.insert(Particle(float(x), float(y), float(z)))
+
+        self.particle_size = particle_size
+        self.dispersion_energy = dispersion_energy
+        self.cutoff = particle_size*cutoff
+
+    @staticmethod
+    def binding_energy(r, particle_size, dispersion_energy):
+        """
+        Calcuate the binding energy for two objects with separation, r.
+
+        Args:
+            r (float): Separation of two objects.
+            particle_size (float): Size of the particles involved in metres.
+            dispersion_energy (float): Depth of the potential well in joules
 
         Returns:
-        float: The separation between this particle and other_particle.
+            float: The binding energy
         """
-        x_separation = other_particle.x - self.x
-        y_separation = other_particle.y - self.y
-        z_separation = other_particle.z - self.z
-
-        return math.sqrt((x_separation*x_separation) + 
-                         (y_separation*y_separation) +
-                         (z_separation*z_separation))
+        scaled_r = pow(particle_size / r,6)
+        return 4*dispersion_energy*(scaled_r)*(scaled_r-1)
     
+    def total_binding_energy(self):
+        """
+        Calculates the total binding energy of a system of particles
+        with a hard cutoff in separation.
+
+        Returns:
+        float: The total binding energy of the particles.
+        """
+        total_binding_energy = 0.0
+        cutoff_in_cells = math.ceil(self.cutoff/self.hash_system.gridcell_size)
+
+        for key, value in self.hash_system.table.items():
+            X, Y, Z = key
+            max_X = X + cutoff_in_cells
+            min_X = X - cutoff_in_cells
+            max_Y = Y + cutoff_in_cells
+            min_Y = Y - cutoff_in_cells
+            max_Z = Z + cutoff_in_cells
+            min_Z = Z - cutoff_in_cells
+
+            # Create list of all neighbours within cutoff
+            neighbour_cells = list(itertools_product([x for x in range(min_X,max_X+1)],
+                                                 [y for y in range(min_Y,max_Y+1)],
+                                                 [z for z in range(min_Z,max_Z+1)]))
+            
+            # Iterate through positions in cell list
+            for particle in value:
+                # Iterate over neighbouring cells within cutoff
+                for neighbour_cell in neighbour_cells:
+                    neighbours = self.hash_system.retrieve_by_hash(neighbour_cell)
+                    for neighbour in neighbours:
+                        if(neighbour != particle):
+                            # Add binding energy to total
+                            total_binding_energy += self.binding_energy(particle.distance_to(neighbour), 
+                                                                    self.particle_size, 
+                                                                    self.dispersion_energy)
+        # Account for double-counting
+        return 0.5*total_binding_energy
 
 if __name__ == "__main__":
     # Handle user input from the command line
@@ -166,7 +192,7 @@ if __name__ == "__main__":
     particle_size = args.particle_size
     dispersion_energy = args.dispersion_energy
 
-    system = Cloud(filepath, particle_size=particle_size, dispersion_energy=dispersion_energy)
+    system = CloudHash(filepath, particle_size=particle_size, dispersion_energy=dispersion_energy)
 
     total_binding_energy = system.total_binding_energy_cutoff()
     print("Total binding energy of your system: "+str(total_binding_energy)+" J")

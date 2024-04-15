@@ -3,7 +3,7 @@ import os
 
 from numpy.testing import assert_allclose
 
-from binding_energy.cloud import Cloud
+from binding_energy.cloud import Cloud, CloudHash
 
 script_dir = os.path.dirname(__file__)
 
@@ -54,7 +54,7 @@ class TestBindingEnergy(unittest.TestCase):
         Test a system of particles on the surface of a sphere with direct summation.
         """
         test_system = Cloud(os.path.join(script_dir, "sphere_system.txt"))
-        assert_allclose(test_system.total_binding_energy_brute(), 0.0)
+        assert_allclose(test_system.total_binding_energy_brute(), 348695.0999843)
 
     def test_sphere_system_cutoff(self):
         """
@@ -62,6 +62,11 @@ class TestBindingEnergy(unittest.TestCase):
         """
         test_system = Cloud(os.path.join(script_dir, "sphere_system.txt"))
         assert_allclose(test_system.total_binding_energy_cutoff(), test_system.total_binding_energy_brute())
+
+    def test_sphere_system_with_hash(self):
+        test_system_hash = CloudHash(os.path.join(script_dir, "sphere_system.txt"))
+        test_system_brute = Cloud(os.path.join(script_dir, "sphere_system.txt"))
+        assert_allclose(test_system_hash.total_binding_energy(), test_system_brute.total_binding_energy_brute())
 
 if __name__ == "__main__":
     unittest.main()
