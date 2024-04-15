@@ -3,7 +3,7 @@ import os
 
 from numpy.testing import assert_allclose
 
-from binding_energy.cloud import Cloud, CloudHash
+from binding_energy.cloud import Cloud, CloudBrute
 
 script_dir = os.path.dirname(__file__)
 
@@ -40,32 +40,32 @@ class TestBindingEnergy(unittest.TestCase):
         Test a system of two particles equidistant by particle size.
         """
         test_system = Cloud(os.path.join(script_dir, "zero_system_2.txt"))
-        assert_allclose(test_system.total_binding_energy_brute(ev=True), 0.0)
+        assert_allclose(test_system.total_binding_energy(), 0.0)
 
     def test_zero_system_3(self):
         """
         Test a system of three particles equidistant by particle size.
         """
         test_system = Cloud(os.path.join(script_dir, "zero_system_3.txt"))
-        assert_allclose(test_system.total_binding_energy_brute(ev=True), 0.0, atol=1e-16)
+        assert_allclose(test_system.total_binding_energy(), 0.0, atol=1e-16)
 
     def test_sphere_system_brute(self):
         """
         Test a system of particles on the surface of a sphere with direct summation.
         """
-        test_system = Cloud(os.path.join(script_dir, "sphere_system.txt"))
+        test_system = CloudBrute(os.path.join(script_dir, "sphere_system.txt"))
         assert_allclose(test_system.total_binding_energy_brute(), 348695.0999843)
 
     def test_sphere_system_cutoff(self):
         """
         Test a system of particles on the surface of a sphere with a cutoff.
         """
-        test_system = Cloud(os.path.join(script_dir, "sphere_system.txt"))
+        test_system = CloudBrute(os.path.join(script_dir, "sphere_system.txt"))
         assert_allclose(test_system.total_binding_energy_cutoff(), test_system.total_binding_energy_brute())
 
     def test_sphere_system_with_hash(self):
-        test_system_hash = CloudHash(os.path.join(script_dir, "sphere_system.txt"))
-        test_system_brute = Cloud(os.path.join(script_dir, "sphere_system.txt"))
+        test_system_hash = Cloud(os.path.join(script_dir, "sphere_system.txt"))
+        test_system_brute = CloudBrute(os.path.join(script_dir, "sphere_system.txt"))
         assert_allclose(test_system_hash.total_binding_energy(), test_system_brute.total_binding_energy_brute())
 
 if __name__ == "__main__":

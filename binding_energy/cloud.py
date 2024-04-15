@@ -11,7 +11,7 @@ from binding_energy.particle import Particle
 
 J_TO_EV = 6.24150907446076e+18
 
-class Cloud():
+class CloudBrute():
     """
     Holds information on a multi-particle system in 3D space.
     """
@@ -97,7 +97,7 @@ class Cloud():
         return total_binding_energy
     
 
-class CloudHash():
+class Cloud():
     def __init__(self, input_file, particle_size=3.41e-10, dispersion_energy=1.65e-21, cutoff=10, hashtable_bin_size=5):
         """
         Initialises the system.
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     particle_size = args.particle_size
     dispersion_energy = args.dispersion_energy
 
-    system = CloudHash(filepath, particle_size=particle_size, dispersion_energy=dispersion_energy)
+    system = Cloud(filepath, particle_size=particle_size, dispersion_energy=dispersion_energy)
 
     total_binding_energy = system.total_binding_energy_cutoff()
     print("Total binding energy of your system: "+str(total_binding_energy)+" J")
