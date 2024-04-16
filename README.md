@@ -1,9 +1,10 @@
 
-# Met Office Technical Exercise - Binding Energy
+# Technical Exercise - Binding Energy
 This project can be used to calculate the total binding energy of a system of particles using the Lennard-Jones potential.
 
 $u(r) = 4\epsilon\left((\frac{\sigma}{r})^{12} - (\frac{\sigma}{r})^{6} \right)$
-  
+
+The system of particles can be specified using a simple text file with each particle position on a new line.
 
 ## Getting Started
 
